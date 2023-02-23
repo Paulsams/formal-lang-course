@@ -10,11 +10,17 @@ def teardown_module(module):
     print("graph_utils from get_graph_info teardown module")
 
 
-def test_get_graph_info_skos():
+def test_get_graph_info_wc():
     print("load skos graph info")
-    assert graph_utils.get_graph_info("skos")
+    exceptedGraphInfo = graph_utils.GraphInfo(
+        count_vertices=332, count_edges=269, labels=["d", "a"]
+    )
+    assert graph_utils.get_graph_info("wc") == exceptedGraphInfo
 
 
 def test_get_graph_info_bzip():
     print("load bzip graph info")
-    assert graph_utils.get_graph_info("bzip")
+    exceptedGraphInfo = graph_utils.GraphInfo(
+        count_vertices=632, count_edges=556, labels=["d", "a"]
+    )
+    assert graph_utils.get_graph_info("bzip") == exceptedGraphInfo

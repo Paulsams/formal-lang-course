@@ -1,13 +1,19 @@
 import cfpq_data
 from networkx.drawing import nx_pydot
 from networkx import MultiDiGraph
-from typing import Tuple
+from typing import List, NamedTuple, Tuple
 
 
-def get_graph_info(name: str) -> Tuple[int, int, list]:
+class GraphInfo(NamedTuple):
+    count_vertices: int
+    count_edges: int
+    labels: List[str]
+
+
+def get_graph_info(name: str) -> GraphInfo:
     """Returns tuple of the form: (number of vertices, number of edges, List[str] - labels)"""
     graph = load_graph(name)
-    return (
+    return GraphInfo(
         graph.number_of_nodes(),
         graph.number_of_edges(),
         cfpq_data.get_sorted_labels(graph),
@@ -15,9 +21,14 @@ def get_graph_info(name: str) -> Tuple[int, int, list]:
 
 
 def create_labeled_graph_with_two_cycle_and_save_to_file(
-    count_nodes_in_cycle: int, labels, path_file: str
+    count_nodes_in_first_cycle: int,
+    count_nodes_in_second_cycle: int,
+    labels: Tuple[str, str],
+    path_file: str,
 ) -> None:
-    graph = cfpq_data.labeled_two_cycles_graph(count_nodes_in_cycle, labels)
+    graph = cfpq_data.labeled_two_cycles_graph(
+        n=count_nodes_in_first_cycle, m=count_nodes_in_second_cycle, labels=labels
+    )
     save_graph_to_file(graph, path_file)
 
 
