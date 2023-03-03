@@ -7,12 +7,21 @@ from networkx import MultiDiGraph
 
 
 def build_dfa_from_regex(expr: str) -> DeterministicFiniteAutomaton:
-    return Regex(expr).to_epsilon_nfa().to_deterministic().minimize()
+    """Builds a graph based on the passed regular expression"""
+    return Regex(expr).to_epsilon_nfa().minimize()
 
 
-def build_from_networkx_graph(
+def build_nfa_from_networkx_graph(
     graph: MultiDiGraph, start_nodes: [] = None, end_nodes: [] = None
 ) -> NondeterministicFiniteAutomaton:
+    """
+    The function builds a Nondeterministic Finite Automaton using data from a MultiDiGraph
+
+    Args:
+        graph: graph on which the automaton is built. Must have a "label" field on the edges.
+        start_nodes: if the list is empty, then it is assumed that all vertices are starting.
+        end_nodes: if the list is empty, then it is assumed that all vertices are starting.
+    """
     nfa = NondeterministicFiniteAutomaton(graph)
 
     if start_nodes is None:

@@ -47,7 +47,7 @@ def test_build_from_networkx_graph():
     graph = graph_utils.create_labeled_graph_with_two_cycle(
         first_size, second_size, labels=("a", "b")
     )
-    nfa = finite_automatons_utils.build_from_networkx_graph(graph, [0], [3])
+    nfa = finite_automatons_utils.build_nfa_from_networkx_graph(graph, [0], [3])
 
     expected = NondeterministicFiniteAutomaton(range(first_size * second_size))
     expected.add_start_state(0)
@@ -66,7 +66,7 @@ def test_build_from_loaded_graph():
     print("build dfa from loaded graph")
 
     graph = graph_utils.load_graph("wc")
-    nfa = finite_automatons_utils.build_from_networkx_graph(graph)
+    nfa = finite_automatons_utils.build_nfa_from_networkx_graph(graph)
 
     exceptedGraphInfo = graph_utils.GraphInfo(
         count_vertices=332, count_edges=269, labels=["d", "a"]
