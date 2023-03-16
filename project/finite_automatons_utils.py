@@ -4,10 +4,19 @@ from pyformlang.finite_automaton import (
     NondeterministicFiniteAutomaton,
     DeterministicFiniteAutomaton,
     EpsilonNFA,
+    State,
 )
 import scipy.sparse as sp
 from networkx import MultiDiGraph
-from scipy.sparse import dok_matrix
+from scipy.sparse import (
+    dok_matrix,
+    kron,
+    block_diag,
+    dok_array,
+    vstack,
+    csr_matrix,
+    csr_array,
+)
 
 
 def build_dfa_from_regex(expr: str) -> DeterministicFiniteAutomaton:
@@ -161,3 +170,92 @@ def rpq(
         if start in intersection.start_states and fin in intersection.final_states:
             result.add((start // len(second.states), fin // len(second.states)))
     return result
+
+
+def bfs_based_rpq(
+    first: NondeterministicFiniteAutomaton,
+    second: NondeterministicFiniteAutomaton,
+    separately: bool,
+):
+    """
+    Reachability check function with regular constraints.
+    :param first: first graph
+    :param second: second graph
+    :param separately: is separated output
+    :return: set of available vertices
+    """
+    (first_indexed_states, first_matrix) = get_states_and_matrix_from_nfa(first)
+    (second_indexed_states, second_matrix) = get_states_and_matrix_from_nfa(second)
+    first_start_state_indexes = {node.value for node in first.start_states}
+    first_final_state_indexes = {node.value for node in first.final_states}
+    second_start_state_indexes = {node.value for node in second.start_states}
+    second_final_state_indexes = {node.value for node in second.final_states}
+    first_n = len(first.states)
+    second_n = len(second.states)
+
+    def transform_rows(front_part: dok_array):
+        front_part_out = dok_array(front_part.shape, dtype=bool)
+        xi, yj = front_part.nonzero()
+        for i, j in zip(xi, yj):
+            if j < second_n:
+                row_second_part = front_part[[i], second_n:]
+                if row_second_part.nnz > 0:
+                    shift = i - i % second_n
+                    front_part_out[shift + j, j] = True
+                    front_part_out[[shift + j], second_n:] += row_second_part
+        return front_part_out
+
+    def get_front(start_states=None):
+        front_out = dok_matrix((second_n, first_n + second_n), dtype=bool)
+
+        front_first = dok_matrix((1, first_n), dtype=bool)
+        for i in start_states:
+            front_first[0, i] = True
+        for ss in second_start_state_indexes:
+            i = second_indexed_states[ss]
+            front_out[i, i] = True
+            front_out[[i], second_n:] = front_first
+        return front_out
+
+    direct_sum = {
+        label: block_diag((second_matrix[label], first_matrix[label]))
+        for label in (first_matrix.keys() & second_matrix.keys())
+    }
+
+    front = (
+        vstack([get_front({i}) for i in first_start_state_indexes])
+        if separately
+        else get_front(first_start_state_indexes)
+    )
+
+    def update_visited(vst, func):
+        vst_nnz = vst.nnz
+        for _, matrix in direct_sum.items():
+            front_part = func(matrix)
+            vst += transform_rows(front_part)
+        return vst, vst_nnz != vst.nnz
+
+    visited = dok_array(front.shape, dtype=bool)
+    (visited, check) = update_visited(visited, lambda m: front @ m)
+    if check:
+        while check:
+            (visited, check) = update_visited(visited, lambda m: visited @ m)
+
+    answer = set()
+    second_states = list(second_indexed_states.keys())
+    first_states = list(first_indexed_states.keys())
+    rows, columns = visited.nonzero()
+    for i, j in zip(rows, columns):
+        if j >= second_n and second_states[i % second_n] in second_final_state_indexes:
+            state_index = j - second_n
+            if first_states[state_index] in first_final_state_indexes:
+                answer.add((i // second_n, state_index) if separately else state_index)
+
+    copy = answer
+    if separately:
+        answer = {}
+        for i in copy:
+            answer.setdefault(i[0], []).append(i[1])
+        for key, value in answer.items():
+            answer[key] = sorted(value)
+    return answer
