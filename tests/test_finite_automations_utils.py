@@ -1,8 +1,8 @@
-import os
 import pytest
+from cfpq_data import labeled_two_cycles_graph
 from project import graph_utils
 from project import finite_automatons_utils
-from pyformlang.finite_automaton import NondeterministicFiniteAutomaton
+from pyformlang.finite_automaton import NondeterministicFiniteAutomaton, EpsilonNFA
 
 
 def setup_module(module):
@@ -75,3 +75,44 @@ def test_build_from_loaded_graph():
     assert len(nfa.states) == exceptedGraphInfo.count_vertices
     assert len(nfa.final_states) == exceptedGraphInfo.count_vertices
     assert len(nfa.start_states) == exceptedGraphInfo.count_vertices
+
+
+def test_intersect_two_automata():
+    nfa1 = EpsilonNFA()
+    nfa1.add_start_state(0)
+    nfa1.add_final_state(0)
+    nfa1.add_transitions([(0, "a", 1), (0, "b", 1), (1, "b", 0)])
+
+    nfa2 = EpsilonNFA()
+    nfa2.add_start_state(0)
+    nfa2.add_final_state(2)
+    nfa2.add_transitions([(0, "a", 1), (1, "b", 2), (2, "b", 0), (0, "b", 2)])
+
+    actual = finite_automatons_utils.intersection_automations(nfa1, nfa2)
+
+    expected = EpsilonNFA()
+    expected.add_start_state(0)
+    expected.add_final_state(2)
+    expected.add_transitions(
+        [
+            (0, "b", 5),
+            (1, "b", 5),
+            (2, "b", 3),
+            (3, "b", 2),
+            (4, "b", 2),
+            (5, "b", 0),
+            (0, "a", 4),
+        ]
+    )
+    assert expected.is_equivalent_to(actual)
+
+
+def test_fdf():
+    regex = "(a | b)*"
+    graph = graph_utils.create_labeled_graph_with_two_cycle(1, 2, labels=("a", "b"))
+
+    got = finite_automatons_utils.rpq(regex, graph, [0, 2], [2, 1])
+    assert {(0, 1), (0, 2), (2, 1), (2, 2)} == got
+
+    got = finite_automatons_utils.rpq(regex, graph, [1], [0])
+    assert {(1, 0)} == got
