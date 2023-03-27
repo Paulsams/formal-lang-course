@@ -120,9 +120,9 @@ def test_fdf():
 def test_rpq_with_separated():
     graph = graph_utils.create_labeled_graph_with_two_cycle(3, 3, ("a", "b"))
     regex = "(a*|b)"
-    first = finite_automatons_utils.build_nfa_from_networkx_graph(graph, None, None)
-    second = finite_automatons_utils.build_dfa_from_regex(regex)
-    result = finite_automatons_utils.bfs_based_rpq(first, second, True)
+    result = finite_automatons_utils.bfs_based_rpq_from_graph_and_regex(
+        graph, regex, True
+    )
 
     expected = {
         0: [0, 1, 2, 3, 4],

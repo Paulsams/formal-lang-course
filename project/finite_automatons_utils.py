@@ -4,18 +4,14 @@ from pyformlang.finite_automaton import (
     NondeterministicFiniteAutomaton,
     DeterministicFiniteAutomaton,
     EpsilonNFA,
-    State,
 )
 import scipy.sparse as sp
 from networkx import MultiDiGraph
 from scipy.sparse import (
     dok_matrix,
-    kron,
     block_diag,
     dok_array,
     vstack,
-    csr_matrix,
-    csr_array,
 )
 
 
@@ -170,6 +166,29 @@ def rpq(
         if start in intersection.start_states and fin in intersection.final_states:
             result.add((start // len(second.states), fin // len(second.states)))
     return result
+
+
+def bfs_based_rpq_from_graph_and_regex(
+    graph: MultiDiGraph,
+    regex: str,
+    separately: bool,
+    start_nodes: [] = None,
+    end_nodes: [] = None,
+):
+    """
+    Reachability check function with regular constraints.
+    :param graph: graph on which the automaton is built. Must have a "label" field on the edges.
+    :param regex: regular expression by which second graph is constructed
+    :param separately: is separated output
+    :param end_nodes: if the list is empty, then it is assumed that all vertices are starting.
+    :param start_nodes: if the list is empty, then it is assumed that all vertices are starting.
+    :return: set of available vertices
+    """
+    return bfs_based_rpq(
+        build_nfa_from_networkx_graph(graph, start_nodes, end_nodes),
+        build_dfa_from_regex(regex),
+        separately,
+    )
 
 
 def bfs_based_rpq(
