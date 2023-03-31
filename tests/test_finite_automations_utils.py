@@ -1,5 +1,4 @@
 import pytest
-from cfpq_data import labeled_two_cycles_graph
 from project import graph_utils
 from project import finite_automatons_utils
 from pyformlang.finite_automaton import NondeterministicFiniteAutomaton, EpsilonNFA
@@ -116,3 +115,34 @@ def test_fdf():
 
     got = finite_automatons_utils.rpq(regex, graph, [1], [0])
     assert {(1, 0)} == got
+
+
+def test_rpq_with_separated():
+    graph = graph_utils.create_labeled_graph_with_two_cycle(3, 3, ("a", "b"))
+    regex = "(a*|b)"
+    result = finite_automatons_utils.bfs_based_rpq_from_graph_and_regex(
+        graph, regex, True
+    )
+
+    expected = {
+        0: [0, 1, 2, 3, 4],
+        1: [0, 1, 2, 3],
+        2: [0, 1, 2, 3],
+        3: [0, 1, 2, 3],
+        4: [5],
+        5: [6],
+        6: [0],
+    }
+
+    assert result == expected
+
+
+def test_rpq_without_separated():
+    graph = graph_utils.create_labeled_graph_with_two_cycle(3, 3, labels=("a", "b"))
+    regex = "(a*|b)"
+    first = finite_automatons_utils.build_nfa_from_networkx_graph(graph, None, None)
+    second = finite_automatons_utils.build_dfa_from_regex(regex)
+    result = finite_automatons_utils.bfs_based_rpq(first, second, False)
+
+    expected = {0, 1, 2, 3, 4, 5, 6}
+    assert result == expected
