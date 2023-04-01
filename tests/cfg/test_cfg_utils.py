@@ -3,7 +3,7 @@ from project.cfg_utils import *
 
 
 def test_cfg():
-    first = read_cfg(Path("test1"))
+    first = read_cfg(Path("tests/cfg/test1"))
     second = cfg_to_wcnf(first)
     right_words = ["", "ab", "xy", "abxyaxybxaby", "xaxaaxybaxybbyby"]
     wrong_words = ["first", "ba", "y", "yx", "axby"]
