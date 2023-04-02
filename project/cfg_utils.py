@@ -15,11 +15,7 @@ def cfg_to_wcnf(cfg: CFG) -> CFG:
     :param cfg:
     :return:
     """
-    temp = (
-        cfg.remove_useless_symbols()
-        .eliminate_unit_productions()
-        .remove_useless_symbols()
-    )
+    temp = cfg.eliminate_unit_productions().remove_useless_symbols()
     new = temp._get_productions_with_only_single_terminals()
     new = temp._decompose_productions(new)
     return CFG(start_symbol=cfg._start_symbol, productions=set(new))
