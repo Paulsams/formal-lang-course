@@ -10,13 +10,19 @@ class RSM(NamedTuple):
 
 
 def rsm_from_ecfg(ecfg: ecfg_utils.ECFG) -> RSM:
+    """
+    Convert RSM from ECFG
+    """
     return RSM(
         ecfg.start_symbol,
         {head: body.to_epsilon_nfa() for head, body in ecfg.productions.items()},
     )
 
 
-def minimize_rsm(rsm) -> RSM:
+def minimize_rsm(rsm: RSM) -> RSM:
+    """
+    Return minimize RSM
+    """
     for var, nfa in rsm.boxes.items():
         rsm.boxes[var] = nfa.minimize()
     return rsm

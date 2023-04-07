@@ -13,6 +13,9 @@ class ECFG(NamedTuple):
 
 
 def ecfg_from_cfg(cfg: CFG) -> ECFG:
+    """
+    Convert CFG to ECFG
+    """
     variables = set(cfg.variables)
     start_symbol = Variable("S") if cfg.start_symbol is None else cfg.start_symbol
     variables.add(start_symbol)
@@ -31,7 +34,10 @@ def ecfg_from_cfg(cfg: CFG) -> ECFG:
     return ECFG(variables, productions, start_symbol)
 
 
-def ecfg_from_text(text: str, start_symbol=Variable("S")):
+def ecfg_from_text(text: str, start_symbol=Variable("S")) -> ECFG:
+    """
+    Convert text to ECFG
+    """
     variables = set()
     productions = {}
     for line in text.splitlines():
@@ -45,7 +51,10 @@ def ecfg_from_text(text: str, start_symbol=Variable("S")):
     return ECFG(variables, productions, start_symbol)
 
 
-def ecfg_from_file(path: Path, start_symbol=Variable("S")):
+def ecfg_from_file(path: Path, start_symbol=Variable("S")) -> ECFG:
+    """
+    Open file from given path and convert text from it into ECFG
+    """
     with open(path, "r") as func:
         data = func.read()
     return ecfg_from_text(data, start_symbol)
