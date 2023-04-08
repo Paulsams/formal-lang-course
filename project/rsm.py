@@ -2,7 +2,7 @@ from typing import NamedTuple, Dict, Any
 from pyformlang.finite_automaton import EpsilonNFA
 from pyformlang.cfg import Variable
 import project.ecfg as ecfg_utils
-from finite_automatons_utils import get_states_and_matrix_from_nfa
+from project.finite_automatons_utils import get_states_and_matrix_from_nfa
 from scipy.sparse import dok_matrix
 
 
