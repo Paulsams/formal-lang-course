@@ -24,6 +24,6 @@ def test_cfg():
             return isinstance(prod.body[0], Terminal)
         return len(prod.body) == 0
 
-    return all(
+    assert all(
         [is_normal_form_production(production) for production in second.productions]
     )

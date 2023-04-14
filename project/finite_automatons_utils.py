@@ -1,4 +1,4 @@
-from typing import Tuple
+from typing import Tuple, Dict, Any
 from pyformlang.regular_expression import Regex
 from pyformlang.finite_automaton import (
     NondeterministicFiniteAutomaton,
@@ -105,7 +105,7 @@ def build_nfa(
     return nfa
 
 
-def get_states_and_matrix_from_nfa(nfa: EpsilonNFA):
+def get_states_and_matrix_from_nfa(nfa: EpsilonNFA) -> (Dict, Dict[Any, dok_matrix]):
     """Returns indexed states and a Boolean matrix by a finite automaton."""
     indexed_states = {state: index for (index, state) in enumerate(nfa.states)}
     count_states = len(nfa.states)
