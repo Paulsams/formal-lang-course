@@ -74,7 +74,7 @@ def cfpg_by_hellings(
             popped_label, v1, u1 = saved_result.pop()
             r_changes = set()
 
-            def temp(v, u, label1, label2):
+            def check_vars(v, u, label1, label2):
                 for triple in (
                     (p.head.value, v, u)
                     for p in var_productions
@@ -86,9 +86,9 @@ def cfpg_by_hellings(
                     r_changes.add(triple)
 
             for (label, v2, _) in (t for t in helling_result if t[2] == v1):
-                temp(v2, u1, label, popped_label)
+                check_vars(v2, u1, label, popped_label)
             for (label, _, u2) in (t for t in helling_result if t[1] == u1):
-                temp(v1, u2, popped_label, label)
+                check_vars(v1, u2, popped_label, label)
 
             helling_result |= r_changes
         return helling_result
