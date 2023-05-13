@@ -195,11 +195,11 @@ graph_expr   : 'EmptyGraph'
 
              | '(' WS graph_expr WS ')'
 
-var_lambda_map_graph    : 'ActionGraph' VAR_DECL WS lambda_map_graph
+var_lambda_map_graph    : 'ActionGraph' WS VAR_DECL WS lambda_map_graph
 lambda_map_graph        : ARGS_GRAPH WS '->' WS expr
                         | '(' WS lambda_map_graph WS ')'
 
-var_lambda_filter_graph : 'PredicateGraph>' VAR_DECL WS lambda_filter_graph
+var_lambda_filter_graph : 'PredicateGraph' WS VAR_DECL WS lambda_filter_graph
 lambda_filter_graph     : ARGS_GRAPH WS '->' WS bool_expr
                         | '(' WS lambda_filter_graph WS ')'
 
@@ -209,7 +209,7 @@ graph_iter_expr : graph_expr WS GET_DECL WS 'iterator'
                 | '(' WS graph_iter_expr WS ')'
 
 ASSIGN_CHAR  : '='
-VAR_DECl     : VAR_NAME WS ASSIGN_CHAR WS
+VAR_DECl     : VAR_NAME WS ASSIGN_CHAR
 
 SET_DECl       : 'set'       |  '<'
 GET_DECL       : 'get'       |  '>'
