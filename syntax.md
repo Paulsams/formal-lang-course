@@ -93,7 +93,7 @@ var  : var_bool
      | var_graph_iter
 
 // Bool
-var_bool  : 'bool' WS VAR_DECl WS bool_expr
+var_bool  : 'bool'? WS VAR_DECl WS bool_expr
 bool_expr : 'true' | 'false'
           | node_expr WS 'in' WS set_nodes_expr
           | 'not' WS bool_expr
@@ -103,28 +103,28 @@ bool_expr : 'true' | 'false'
           | '(' WS bool_expr WS ')'
 
 // Int
-var_int   : 'int' WS VAR_DECl WS int_expr
+var_int   : 'int'? WS VAR_DECl WS int_expr
 int_expr  : INT
           | node_expr
           | '(' WS int_expr WS ')'
 
 // String
-var_str   : 'string' WS VAR_DECL WS str_expr
+var_str   : 'string'? WS VAR_DECL WS str_expr
 str_expr  : STR
           | '(' WS str_expr WS ')'
 
 // Regex
-var_regex  : 'Regex' WS VAR_DECL WS regex_expr
-regex_expr : str_expr
+var_regex  : 'Regex'? WS VAR_DECL WS regex_expr
+regex_expr : 'Regex' WS str_expr
            | '(' WS str_expr WS ')'
 
 // Path
-var_path  : 'Path' WS VAR_DECL WS path_expr
+var_path  : 'Path'? WS VAR_DECL WS path_expr
 path_expr : str_expr
           | '(' WS path_expr WS ')'
 
 // Node
-var_node        : 'Node' WS VAR_DECL WS node_expr
+var_node        : 'Node'? WS VAR_DECL WS node_expr
 node_expr       : INT
                 | edge_expr WS GET_DECl WS 'from'
                 | edge_expr WS GET_DECl WS 'to'
@@ -132,7 +132,7 @@ node_expr       : INT
                 | pair_nodes_expr WS GET_DECl WS 'second'
                 | '(' WS node_expr WS ')'
 
-var_set_nodes   : 'Set<Node>' WS VAR_DECl WS set_nodes_expr
+var_set_nodes   : 'Set<Node>'? WS VAR_DECl WS set_nodes_expr
 set_nodes_expr  : '{' WS '}'
                 | '{' WS (node_expr (',' WS node_expr)* )? WS '}'
                 | graph_expr WS GET_DECL WS NODES_ACCESSOR
@@ -140,34 +140,34 @@ set_nodes_expr  : '{' WS '}'
                 | graph_expr WS GET_DECL WS FINAl_NODES_ACCESSOR
                 | '(' WS set_nodes_expr WS ')'
 
-var_set_pair_nodes  : 'Set<Pair<Node, Node>>' WS VAR_DECL WS set_pair_nodes_expr
+var_set_pair_nodes  : 'Set<Pair<Node, Node>>'? WS VAR_DECL WS set_pair_nodes_expr
 set_pair_nodes_expr : '{' WS '}'
                     | '{' WS (pair_nodes_expr (',' WS pair_nodes_expr)* )? WS '}'
                     | graph_expr WS GET_DECL WS 'reachable'
 
-var_pair_nodes  : ('Pair<Node, Node>' WS VAR_NAME | '(' WS (VAR_NAME | WILDCARD) WS ',' WS (VAR_NAME | WILDCARD) WS ')' WS ASSIGN_CHAR WS pair_nodes_expr
+var_pair_nodes  : ('Pair<Node, Node>'? WS VAR_NAME | '(' WS (VAR_NAME | WILDCARD) WS ',' WS (VAR_NAME | WILDCARD) WS ')' WS ASSIGN_CHAR WS pair_nodes_expr
 pair_nodes_expr : '(' WS node WS ',' WS node WS ')'
                 | '(' WS pair_nodes_expr WS ')'
 
 // Edge
-var_edge        : 'Edge' WS VAR_DECL WS edge_expr
+var_edge        : 'Edge'? WS VAR_DECL WS edge_expr
 edge_expr       : '(' WS node WS ',' WS node WS ',' WS label WS ')'
                 | '(' WS edge_expr WS ')'
 
-var_set_edges   : 'Set<Edge>' WS VAR_DECl WS set_edges_expr
+var_set_edges   : 'Set<Edge>'? WS VAR_DECl WS set_edges_expr
 set_edges_expr  : '{' WS '}'
                 | '{' (edge (',' WS edge)* )? '}'
                 | graph_expr GET_DECL EDGES_ACCESSOR
                 | '(' WS set_edges_expr WS ')'
 
 // Label
-var_label  : 'Label' WS VAR_DECL WS label_expr
+var_label  : 'Label'? WS VAR_DECL WS label_expr
 label_expr : str_expr
            | edge_expr GET_DECL 'label'
            | '(' WS label_expr WS ')'
 
 // Graph
-var_graph    : 'Graph' WS VAR_DECL WS graph_expr
+var_graph    : 'Graph'? WS VAR_DECL WS graph_expr
 graph_expr   : 'EmptyGraph'
              | 'CFG' WC str_expr
              | regex_expr
@@ -195,15 +195,15 @@ graph_expr   : 'EmptyGraph'
 
              | '(' WS graph_expr WS ')'
 
-var_lambda_map_graph    : 'ActionGraph' WS VAR_DECL WS lambda_map_graph
-lambda_map_graph        : ARGS_GRAPH WS '->' WS expr
+var_lambda_map_graph    : 'ActionGraph'? WS VAR_DECL WS lambda_map_graph
+lambda_map_graph        : '(' WS ARGS_GRAPH WS '->' WS expr WS ')'
                         | '(' WS lambda_map_graph WS ')'
 
-var_lambda_filter_graph : 'PredicateGraph' WS VAR_DECL WS lambda_filter_graph
-lambda_filter_graph     : ARGS_GRAPH WS '->' WS bool_expr
+var_lambda_filter_graph : 'PredicateGraph'? WS VAR_DECL WS lambda_filter_graph
+lambda_filter_graph     : '(' WS ARGS_GRAPH WS '->' WS bool_expr WS ')'
                         | '(' WS lambda_filter_graph WS ')'
 
-var_graph_iter  : VAR_DECL WS graph_iter_expr
+var_graph_iter  : 'GraphIter'? WS VAR_DECL WS graph_iter_expr
 graph_iter_expr : graph_expr WS GET_DECL WS 'iterator'
                 | graph_iter_expr WS 'next' WS label
                 | '(' WS graph_iter_expr WS ')'
@@ -244,21 +244,21 @@ WS      : (' ' | '\t')+
 
 Получение достижимых вершин из данного графа
 ```
-Graph graph = load "skos" < starts {0, 1, 2, 3, 4, 5, 6, 7}
-Set<Pair<Node, Node>> reachables = graph > reachable
+graph = load "skos" < starts {0, 1, 2, 3, 4, 5, 6, 7}
+reachables = graph > reachable
 ```
 
 Вывод тех пар вершин, между которыми существует путь, удовлетворяющий КС-ограничению
 ```
 Graph graph = CFG "S -> a S b | a b"
-Regex regex = "a b"
+Regex regex = Regex "a b"
 print((graph & regex) > reachable)
 ```
 
 Получение множества общих меток графов "wine" и "pizza"
 ```
-Graph wine = load "wine"
-Graph pizza = load "pizza"
-Set<Edge> common_labels = wine filter ((_, _, label) -> label ? pizza) > edges
+wine = load "wine"
+pizza = load "pizza"
+common_labels = wine <?> ((_, _, label) -> label ? pizza) get edges
 print(common_labels)
 ```
