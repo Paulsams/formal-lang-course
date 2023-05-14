@@ -21,8 +21,8 @@ jobs:
           sudo apt-get -y install antlr4
           python -m pip install --upgrade pip
           pip install -r requirements.txt
+      - name: Generate ANTLR files
+        working-directory: project/my_language
+        run: antlr4 -Dlanguage=Python3 Grammar.g4 -visitor -o dist
       - name: Tests
-        run: |
-          PATH_TO_LANGUAGE="project/my_language"
-          antlr4 -Dlanguage=Python3 $PATH_TO_LANGUAGE/Grammar.g4 -visitor -o $PATH_TO_LANGUAGE/dist
-          python ./scripts/run_tests.py
+        run: python ./scripts/run_tests.py
