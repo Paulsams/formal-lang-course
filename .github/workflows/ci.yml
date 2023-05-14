@@ -18,7 +18,7 @@ jobs:
           python-version: 3.8
       - name: Install dependencies
         run: |
-          sudo apt-get -y install antlr
+          sudo apt-get -y install antlr4
           python -m pip install --upgrade pip
           pip install -r requirements.txt
       - name: Tests
