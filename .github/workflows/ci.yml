@@ -21,4 +21,7 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
       - name: Tests
-        run: python ./scripts/run_tests.py
+        run: |
+          PATH_TO_LANGUAGE="project/my_language"
+          antlr4 -Dlanguage=Python3 $PATH_TO_LANGUAGE/Grammar.g4 -visitor -o $PATH_TO_LANGUAGE/dist
+          python ./scripts/run_tests.py
