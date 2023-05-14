@@ -76,7 +76,6 @@ expr : VAR_NAME
      | lambda_map_graph_expr
      | lambda_filter_graph_expr
      | graph_iter_expr
-     | '(' WS? expr WS? ')'
      ;
 
 var  : var_bool
@@ -106,6 +105,8 @@ bool_expr : '(' WS? bool_expr WS? ')'
           | node_expr WS 'in' WS set_nodes_expr
           | bool_expr WS '&&' WS bool_expr
           | bool_expr WS '||' WS bool_expr
+          | str_expr WS EQUALS_CHAR WS str_expr
+          | node_expr WS EQUALS_CHAR WS node_expr
           | VAR_NAME
           ;
 
@@ -135,7 +136,7 @@ regex_expr : '(' WS? str_expr WS? ')'
 // Path
 var_path  : ('Path' WS)? VAR_DECL WS path_expr ;
 path_expr : '(' WS? path_expr WS? ')'
-          | '%' str_expr
+          | '%' STR
           | 'Path' WS str_expr
           | VAR_NAME
           ;
@@ -233,12 +234,14 @@ graph_expr   : '(' WS? graph_expr WS? ')'
 
 var_lambda_map_graph     : ('ActionGraph' WS)? VAR_DECL WS lambda_map_graph_expr ;
 lambda_map_graph_expr    : '(' WS? lambda_map_graph_expr WS? ')'
-                         | '[' WS? args_graph WS? '->' WS? expr WS? ']'
+                         | args_graph WS? '->' WS? '{' WS? edge_expr WS? '}'
+                         | VAR_NAME
                          ;
 
 var_lambda_filter_graph  : ('PredicateGraph' WS)? VAR_DECL WS lambda_filter_graph_expr ;
 lambda_filter_graph_expr : '(' WS? lambda_filter_graph_expr WS? ')'
                          | args_graph WS? '->' WS? '{' WS? bool_expr WS? '}'
+                         | VAR_NAME
                          ;
 
 var_graph_iter  : ('GraphIter' WS)? VAR_DECL WS graph_iter_expr ;
@@ -256,7 +259,8 @@ args_graph : '[' WS? ('(' WS? matching_var WS? ',' WS? matching_var WS? ',' WS? 
 
 matching_var : VAR_NAME | WILDCARD ;
 
-ASSIGN_CHAR  : '=' ;
+EQUALS_CHAR  : 'eq' ;
+ASSIGN_CHAR  : '='  ;
 VAR_DECL     : VAR_NAME WS ASSIGN_CHAR ;
 
 SET_DECL       : 'set'       |  '<'  ;
@@ -266,7 +270,7 @@ REMOVE_DECL    : 'remove'    |  '-'  ;
 MAP_DECL       : 'map'       | '<$>' ;
 FILTER_DECL    : 'filter'    | '<?>' ;
 INTERSECT_DECL : 'intersect' |  '|'  ;
-CONCAT_DECL    : 'concat'    |  '+'  ;
+CONCAT_DECL    : 'concat'    | '++'  ;
 UNION_DECL     : 'union'     |  '&'  ;
 STAR_DECL      : 'star'      |  '*'  ;
 CONTAINS_DECL  : 'contains'  |  '?'  ;
