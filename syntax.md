@@ -53,13 +53,14 @@ argument =
 
 ## Конкретный синтаксис
 ```
-prog : (COMMENT? EOL | stmt? COMMENT? (EOL | EOF))*
+program   : EOL* ((statement WS? COMMENT? | COMMENT) WS? (EOL+ | EOF))* ;
 
-stmt : var
-     | 'print' '(' expr ')'
+statement : var
+          | 'print' '(' WS? expr WS? ')'
+          ;
 
-expr : '(' WS expr WS ')'
-     | bool_exp
+expr : VAR_NAME
+     | bool_expr
      | int_expr
      | str_expr
      | regex_expr
@@ -72,9 +73,11 @@ expr : '(' WS expr WS ')'
      | set_edges_expr
      | label_expr
      | graph_expr
-     | lambda_map_graph
-     | lambda_filter_graph
+     | lambda_map_graph_expr
+     | lambda_filter_graph_expr
      | graph_iter_expr
+     | '(' WS? expr WS? ')'
+     ;
 
 var  : var_bool
      | var_int
@@ -85,107 +88,138 @@ var  : var_bool
      | var_set_nodes
      | var_set_pair_nodes
      | var_pair_nodes
+     | var_edge
      | var_set_edges
-     | var_label_expr
-     | var_graph_expr
+     | var_label
+     | var_graph
      | var_lambda_map_graph
      | var_lambda_filter_graph
      | var_graph_iter
+     ;
 
 // Bool
-var_bool  : 'bool'? WS VAR_DECl WS bool_expr
-bool_expr : 'true' | 'false'
-          | node_expr WS 'in' WS set_nodes_expr
+var_bool  : ('bool' WS)? VAR_DECL WS bool_expr ;
+bool_expr : '(' WS? bool_expr WS? ')'
           | 'not' WS bool_expr
+          | 'true' | 'false'
+          | graph_expr WS CONTAINS_DECL WS (label_expr | node_expr | edge_expr)
+          | node_expr WS 'in' WS set_nodes_expr
           | bool_expr WS '&&' WS bool_expr
           | bool_expr WS '||' WS bool_expr
-          | graph_expr WS CONTAINS_DECL WS (label_expr | node_expr | edge_expr)
-          | '(' WS bool_expr WS ')'
+          | VAR_NAME
+          ;
 
 // Int
-var_int   : 'int'? WS VAR_DECl WS int_expr
-int_expr  : INT
-          | node_expr
-          | '(' WS int_expr WS ')'
+var_int   : ('int' WS)? VAR_DECL WS int_expr ;
+int_expr  : '(' WS? int_expr WS? ')'
+          | INT
+          // | node_expr WS GET_DECL WS 'value'
+          | VAR_NAME
+          ;
 
 // String
-var_str   : 'string'? WS VAR_DECL WS str_expr
-str_expr  : STR
-          | '(' WS str_expr WS ')'
+var_str   : ('string' WS)? VAR_DECL WS str_expr ;
+str_expr  : '(' WS? str_expr WS? ')'
+          | STR
+          | VAR_NAME
+          ;
 
 // Regex
-var_regex  : 'Regex'? WS VAR_DECL WS regex_expr
-regex_expr : 'Regex' WS str_expr
-           | '(' WS str_expr WS ')'
+var_regex  : ('Regex' WS)? VAR_DECL WS regex_expr ;
+regex_expr : '(' WS? str_expr WS? ')'
+           | 'r' STR
+           | 'Regex' WS str_expr
+           | VAR_NAME
+           ;
 
 // Path
-var_path  : 'Path'? WS VAR_DECL WS path_expr
-path_expr : str_expr
-          | '(' WS path_expr WS ')'
+var_path  : ('Path' WS)? VAR_DECL WS path_expr ;
+path_expr : '(' WS? path_expr WS? ')'
+          | '%' str_expr
+          | 'Path' WS str_expr
+          | VAR_NAME
+          ;
 
 // Node
-var_node        : 'Node'? WS VAR_DECL WS node_expr
-node_expr       : INT
-                | edge_expr WS GET_DECl WS 'from'
-                | edge_expr WS GET_DECl WS 'to'
-                | pair_nodes_expr WS GET_DECl WS 'first'
-                | pair_nodes_expr WS GET_DECl WS 'second'
-                | '(' WS node_expr WS ')'
+var_node        : ('Node' WS)? VAR_DECL WS node_expr ;
+node_expr       : '(' WS? node_expr WS? ')'
+                | INT
+                | edge_expr WS GET_DECL WS 'from'
+                | edge_expr WS GET_DECL WS 'to'
+                | pair_nodes_expr WS GET_DECL WS 'first'
+                | pair_nodes_expr WS GET_DECL WS 'second'
+                | VAR_NAME
+                | int_expr
+                ;
 
-var_set_nodes   : 'Set<Node>'? WS VAR_DECl WS set_nodes_expr
-set_nodes_expr  : '{' WS '}'
-                | '{' WS (node_expr (',' WS node_expr)* )? WS '}'
-                | graph_expr WS GET_DECL WS NODES_ACCESSOR
-                | graph_expr WS GET_DECL WS START_NODES_ACCESSOR
-                | graph_expr WS GET_DECL WS FINAl_NODES_ACCESSOR
-                | '(' WS set_nodes_expr WS ')'
+var_set_nodes   : ('Set<Node>' WS)? VAR_DECL WS set_nodes_expr ;
+set_nodes_expr  : '(' WS? set_nodes_expr WS? ')'
+                | '{' WS? '}'
+                | '{' WS? (node_expr (WS? ',' WS? node_expr)* )? WS? '}'
+                | graph_expr WS GET_DECL WS NODES_DECL
+                | graph_expr WS GET_DECL WS START_NODES_DECL
+                | graph_expr WS GET_DECL WS FINAL_NODES_DECL
+                | VAR_NAME
+                ;
 
-var_set_pair_nodes  : 'Set<Pair<Node, Node>>'? WS VAR_DECL WS set_pair_nodes_expr
-set_pair_nodes_expr : '{' WS '}'
-                    | '{' WS (pair_nodes_expr (',' WS pair_nodes_expr)* )? WS '}'
+var_set_pair_nodes  : ('Set<Pair<Node, Node>>' WS)? VAR_DECL WS set_pair_nodes_expr ;
+set_pair_nodes_expr : '(' WS? set_pair_nodes_expr WS? ')'
+                    | '{' WS? '}'
+                    | '{' WS? (pair_nodes_expr (WS? ',' WS? pair_nodes_expr)* )? WS? '}'
                     | graph_expr WS GET_DECL WS 'reachable'
+                    | VAR_NAME
+                    ;
 
-var_pair_nodes  : ('Pair<Node, Node>'? WS VAR_NAME | '(' WS (VAR_NAME | WILDCARD) WS ',' WS (VAR_NAME | WILDCARD) WS ')' WS ASSIGN_CHAR WS pair_nodes_expr
-pair_nodes_expr : '(' WS node WS ',' WS node WS ')'
-                | '(' WS pair_nodes_expr WS ')'
+var_pair_nodes  : ('Pair<Node, Node>' WS)? VAR_NAME | '(' WS matching_var WS ',' WS matching_var WS ')' WS ASSIGN_CHAR WS pair_nodes_expr ;
+pair_nodes_expr : '(' WS? pair_nodes_expr WS? ')'
+                | '(' WS? node_expr WS? ',' WS? node_expr WS? ')'
+                | VAR_NAME
+                ;
 
 // Edge
-var_edge        : 'Edge'? WS VAR_DECL WS edge_expr
-edge_expr       : '(' WS node WS ',' WS node WS ',' WS label WS ')'
-                | '(' WS edge_expr WS ')'
+var_edge        : ('Edge' WS)? VAR_DECL WS edge_expr ;
+edge_expr       : '(' WS? edge_expr WS? ')'
+                | '(' WS? node_expr WS? ',' WS? node_expr WS? ',' WS? label_expr WS? ')'
+                | VAR_NAME
+                ;
 
-var_set_edges   : 'Set<Edge>'? WS VAR_DECl WS set_edges_expr
-set_edges_expr  : '{' WS '}'
-                | '{' (edge (',' WS edge)* )? '}'
-                | graph_expr GET_DECL EDGES_ACCESSOR
-                | '(' WS set_edges_expr WS ')'
+var_set_edges   : ('Set<Edge>' WS)? VAR_DECL WS set_edges_expr ;
+set_edges_expr  : '(' WS? set_edges_expr WS? ')'
+                | '{' WS? '}'
+                | '{' WS? (edge_expr (WS? ',' WS? edge_expr)* )? WS? '}'
+                | graph_expr WS GET_DECL WS EDGES_DECL
+                | VAR_NAME
+                ;
 
 // Label
-var_label  : 'Label'? WS VAR_DECL WS label_expr
-label_expr : str_expr
-           | edge_expr GET_DECL 'label'
-           | '(' WS label_expr WS ')'
+var_label  : ('Label' WS)? VAR_DECL WS label_expr ;
+label_expr : '(' WS? label_expr WS? ')'
+           | STR
+           | edge_expr WS GET_DECL WS 'label'
+           | VAR_NAME
+           | str_expr
+           ;
 
 // Graph
-var_graph    : 'Graph'? WS VAR_DECL WS graph_expr
-graph_expr   : 'EmptyGraph'
-             | 'CFG' WC str_expr
-             | regex_expr
-             | graph_expr WS SET_DECL WS START_NODES_ACCESSOR
-             | graph_expr WS SET_DECL WS FINAl_NODES_ACCESSOR
+var_graph    : ('Graph' WS)? VAR_DECL WS graph_expr ;
+graph_expr   : '(' WS? graph_expr WS? ')'
+             | 'EmptyGraph'
+             | 'CFG' WS str_expr
+             | graph_expr WS SET_DECL WS START_NODES_DECL WS set_nodes_expr
+             | graph_expr WS SET_DECL WS FINAL_NODES_DECL WS set_nodes_expr
 
-             | graph_expr WS ADD_DECL WS NODES_ACCESSOR
-             | graph_expr WS ADD_DECL WS START_NODES_ACCESSOR
-             | graph_expr WS ADD_DECL WS FINAl_NODES_ACCESSOR
-             | graph_expr WS ADD_DECL WS EDGES_ACCESSOR
+             | graph_expr WS ADD_DECL WS NODES_DECL WS set_nodes_expr
+             | graph_expr WS ADD_DECL WS START_NODES_DECL WS set_nodes_expr
+             | graph_expr WS ADD_DECL WS FINAL_NODES_DECL WS set_nodes_expr
+             | graph_expr WS ADD_DECL WS EDGES_DECL WS set_edges_expr
 
-             | graph_expr WS REMOVE_DECL WS NODES_ACCESSOR
-             | graph_expr WS REMOVE_DECL WS START_NODES_ACCESSOR
-             | graph_expr WS REMOVE_DECL WS FINAl_NODES_ACCESSOR
-             | graph_expr WS REMOVE_DECL WS EDGES_ACCESSOR
+             | graph_expr WS REMOVE_DECL WS NODES_DECL WS set_nodes_expr
+             | graph_expr WS REMOVE_DECL WS START_NODES_DECL WS set_nodes_expr
+             | graph_expr WS REMOVE_DECL WS FINAL_NODES_DECL WS set_nodes_expr
+             | graph_expr WS REMOVE_DECL WS EDGES_DECL WS set_edges_expr
 
-             | graph_expr WS MAP_DECL WS lambda_map_graph
-             | graph_expr WS FILTER_DECL WS lambda_filter_graph
+             | graph_expr WS MAP_DECL WS lambda_map_graph_expr
+             | graph_expr WS FILTER_DECL WS lambda_filter_graph_expr
 
              | 'load' WS path_expr
              | graph_expr WS INTERSECT_DECL WS graph_expr
@@ -193,58 +227,65 @@ graph_expr   : 'EmptyGraph'
              | graph_expr WS UNION_DECL WS graph_expr
              | graph_expr WS STAR_DECL WS graph_expr
 
-             | '(' WS graph_expr WS ')'
+             | VAR_NAME
+             | regex_expr
+             ;
 
-var_lambda_map_graph    : 'ActionGraph'? WS VAR_DECL WS lambda_map_graph
-lambda_map_graph        : '(' WS ARGS_GRAPH WS '->' WS expr WS ')'
-                        | '(' WS lambda_map_graph WS ')'
+var_lambda_map_graph     : ('ActionGraph' WS)? VAR_DECL WS lambda_map_graph_expr ;
+lambda_map_graph_expr    : '(' WS? lambda_map_graph_expr WS? ')'
+                         | '[' WS? args_graph WS? '->' WS? expr WS? ']'
+                         ;
 
-var_lambda_filter_graph : 'PredicateGraph'? WS VAR_DECL WS lambda_filter_graph
-lambda_filter_graph     : '(' WS ARGS_GRAPH WS '->' WS bool_expr WS ')'
-                        | '(' WS lambda_filter_graph WS ')'
+var_lambda_filter_graph  : ('PredicateGraph' WS)? VAR_DECL WS lambda_filter_graph_expr ;
+lambda_filter_graph_expr : '(' WS? lambda_filter_graph_expr WS? ')'
+                         | args_graph WS? '->' WS? '{' WS? bool_expr WS? '}'
+                         ;
 
-var_graph_iter  : 'GraphIter'? WS VAR_DECL WS graph_iter_expr
-graph_iter_expr : graph_expr WS GET_DECL WS 'iterator'
-                | graph_iter_expr WS 'next' WS label
-                | '(' WS graph_iter_expr WS ')'
+var_graph_iter  : ('GraphIter' WS)? VAR_DECL WS graph_iter_expr ;
+graph_iter_expr : '(' WS? graph_iter_expr WS? ')'
+                | graph_expr WS GET_DECL WS 'iterator'
+                | graph_iter_expr WS 'next' WS label_expr
+                ;
 
-ASSIGN_CHAR  : '='
-VAR_DECl     : VAR_NAME WS ASSIGN_CHAR
+NODES_DECL       : 'nodes'  ;
+START_NODES_DECL : 'starts' ;
+FINAL_NODES_DECL : 'finals' ;
+EDGES_DECL       : 'edges'  ;
 
-SET_DECl       : 'set'       |  '<'
-GET_DECL       : 'get'       |  '>'
-ADD_DECL       : 'add'       |  '+'
-REMOVE_DECL    : 'remove'    |  '-'
-MAP_DECL       : 'map'       | '<$>'
-FILTER_DECL    : 'filter'    | '<?>'
-INTERSECT_DECL : 'intersect' |  '|'
-CONCAT_DECL    : 'concat'    |  '+'
-UNION_DECL     : 'union'     |  '&'
-STAR_DECL      : 'star'      |  '*'
-CONTAINS_DECL  : 'contains'  |  '?'
+args_graph : '[' WS? ('(' WS? matching_var WS? ',' WS? matching_var WS? ',' WS? matching_var WS? ')' | matching_var) WS? ']' ;
 
-NODES_ACCESSOR       : 'nodes' set_nodes_expr
-START_NODES_ACCESSOR : 'starts' set_nodes_expr
-FINAl_NODES_ACCESSOR : 'finals' set_nodes_expr
-EDGES_ACCESSOR       : 'edges' set_edges_expr
+matching_var : VAR_NAME | WILDCARD ;
 
-ARGS_GRAPH : '(' WS (edge_expr | VAR_NAME | WILDCARD) WS ')'
+ASSIGN_CHAR  : '=' ;
+VAR_DECL     : VAR_NAME WS ASSIGN_CHAR ;
 
-WILDCARD   : '_'
+SET_DECL       : 'set'       |  '<'  ;
+GET_DECL       : 'get'       |  '>'  ;
+ADD_DECL       : 'add'       |  '+'  ;
+REMOVE_DECL    : 'remove'    |  '-'  ;
+MAP_DECL       : 'map'       | '<$>' ;
+FILTER_DECL    : 'filter'    | '<?>' ;
+INTERSECT_DECL : 'intersect' |  '|'  ;
+CONCAT_DECL    : 'concat'    |  '+'  ;
+UNION_DECL     : 'union'     |  '&'  ;
+STAR_DECL      : 'star'      |  '*'  ;
+CONTAINS_DECL  : 'contains'  |  '?'  ;
 
-VAR_NAME -> [a-zA-Z_][a-zA-Z_0-9]*
+VAR_NAME   : [a-zA-Z][a-zA-Z_0-9]* ;
 
-STR     : '"' ~[\n]* '"'
-INT     : '-'? [1-9][0-9]*
-COMMENT : '//' ~[\n]*
-EOL     : ('\r'? '\n' | '\r')+
-WS      : (' ' | '\t')+
+WILDCARD   : '_' ;
+
+STR     : '"' ~[\n"]* '"' ;
+INT     : '0' | '-'? [1-9][0-9]* ;
+COMMENT : '//' ~[\n]* ;
+EOL     : ('\r'? '\n' | '\r')+ ;
+WS      : (' ' | '\t')+ ;
 ```
 ## Примеры
 
 Получение достижимых вершин из данного графа
 ```
-graph = load "skos" < starts {0, 1, 2, 3, 4, 5, 6, 7}
+graph = load %"skos" < starts {0, 1, 2, 3, 4, 5, 6, 7}
 reachables = graph > reachable
 ```
 
@@ -257,8 +298,9 @@ print((graph & regex) > reachable)
 
 Получение множества общих меток графов "wine" и "pizza"
 ```
-wine = load "wine"
-pizza = load "pizza"
-common_labels = wine <?> ((_, _, label) -> label ? pizza) get edges
+wine = load %"wine"
+pizza = load %"pizza"
+
+common_labels = (wine <?> [(_, _, lb)] -> { pizza ? lb }) get edges
 print(common_labels)
 ```
