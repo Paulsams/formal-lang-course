@@ -8,21 +8,27 @@ on:
       - main
 
 jobs:
-  build:
+  run_tests:
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.10"]
+
     steps:
-      - uses: actions/checkout@v2
-      - name: Set up Python 3.8
-        uses: actions/setup-python@v1
+      - name: Copy directory from git
+        uses: actions/checkout@v3
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v4
         with:
-          python-version: 3.8
+          python-version: ${{ matrix.python-version }}
       - name: Install dependencies
         run: |
-          sudo apt-get -y install antlr4
-          python -m pip install --upgrade pip
+          python3 -m pip install --upgrade pip
           pip install -r requirements.txt
+
       - name: Generate ANTLR files
         working-directory: project/my_language
-        run: antlr4 -Dlanguage=Python3 Grammar.g4 -visitor -o dist
-      - name: Tests
-        run: python ./scripts/run_tests.py
+        run: antlr4 -Dlanguage=Python3 -visitor Grammar.g4 -o dist
+
+      - name: Run tests
+        run: python3 ./scripts/run_tests.py
