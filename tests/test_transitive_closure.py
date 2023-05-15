@@ -1,16 +1,24 @@
-import pytest
 from pyformlang.cfg import Variable, CFG
 import cfpq_data
 
-from project.helling import cfpg_by_hellings
+import project.cfpg.helling as helling
+import project.cfpg.matrix as matrix
+
+
+def test_matrix():
+    check(matrix.cfpg_transitive_closure)
 
 
 def test_hellings():
+    check(helling.cfpg_transitive_closure)
+
+
+def check(transitive_closure_func):
     def local(cfg_text, expected_edges):
         graph = cfpq_data.labeled_two_cycles_graph(2, 1, labels=("a", "b"))
         cfg = CFG.from_text(cfg_text, Variable("S"))
 
-        assert cfpg_by_hellings(graph, cfg) == expected_edges
+        assert transitive_closure_func(graph, cfg) == expected_edges
 
     local("S -> a b", {(2, 3)})
     local(

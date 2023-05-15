@@ -1,31 +1,31 @@
 from pathlib import Path
+from typing import Set, Tuple
 
 from pyformlang.cfg import CFG
 from networkx import MultiDiGraph
-from typing import Set, Tuple
 
 from project.cfg_utils import cfg_to_wcnf, cfg_str_to_wcnf, read_cfg
 
 
-def cfg_str_by_hellings(
+def cfg_str_transitive_closure(
     graph: MultiDiGraph, cfg_text: str, start: str = "S"
 ) -> Set[Tuple]:
     """
     Translation text to CFG and execution of the Helling algorithm on it
     """
-    return cfpg_by_hellings(graph, cfg_str_to_wcnf(cfg_text, start))
+    return cfpg_transitive_closure(graph, cfg_str_to_wcnf(cfg_text, start))
 
 
-def read_cfg_and_hellings(
+def read_cfg_and_transitive_closure(
     graph: MultiDiGraph, path: Path, start: str = "S"
 ) -> Set[Tuple]:
     """
     Read CFG from given path and execution of the Helling algorithm on it
     """
-    return cfpg_by_hellings(graph, read_cfg(path, start))
+    return cfpg_transitive_closure(graph, read_cfg(path, start))
 
 
-def cfpg_by_hellings(
+def cfpg_transitive_closure(
     graph: MultiDiGraph,
     cfg: CFG,
     start_nodes: Set[int] = None,
@@ -45,7 +45,7 @@ def cfpg_by_hellings(
         final_nodes = graph.nodes
     start_symbol = cfg.start_symbol.value
 
-    def executue_hellings():
+    def execute():
         helling_result = set(tuple())
         wcnf = cfg_to_wcnf(cfg)
         eps_productions = set()
@@ -95,7 +95,7 @@ def cfpg_by_hellings(
 
     result = {
         (x, y)
-        for (label, x, y) in executue_hellings()
+        for (label, x, y) in execute()
         if x in start_nodes and y in final_nodes and label == start_symbol
     }
     return result
