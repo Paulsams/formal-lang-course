@@ -1,16 +1,16 @@
 import os
 from pathlib import Path
 
-from project.my_language.my_language_interpteter import check_input, GraphTreeListener
+from project.my_language.saver_to_dot import check_input, GraphTreeListener
 
 
 def test_var():
     assert check_input('a = "text"')
     assert check_input("b = 532423")
-    assert check_input("c = 43423;")
+    assert check_input("c = 43423")
 
-    assert check_input("Set<Node> nodes = { 41, 3, 23 }")
-    assert check_input('Graph graph = load %"skos"')
+    assert check_input("nodes = { 41, 3, 23 }")
+    assert check_input('graph = load %"skos"')
 
 
 def test_comments():
@@ -36,24 +36,24 @@ def test_graph_functions():
 
 
 def test_graph_operators():
-    assert check_input("graph = fst  &   snd")
-    assert check_input("graph = fst  |   snd")
-    assert check_input("graph = fst  ++  snd")
-    assert check_input("graph = fst star snd")
-    assert check_input("graph = fst  ?   0")
+    assert check_input("graph = first  &   second")
+    assert check_input("graph = first  |   second")
+    assert check_input("graph = first  ++  second")
+    assert check_input("graph = first star")
+    assert check_input("graph = first  ?   second")
 
 
 def test_graph_functional():
     assert check_input(
-        'modified_graph = graph <$> ([edg] -> { (edg > from, edg > to, "a") })'
+        'modified_graph = graph <$> ((edg) -> { (edg > from, edg > to, "a") })'
     )
-    assert check_input("predicate = [(fr, _, lb)] -> { fr eq 10 }")
+    assert check_input("predicate = [(fr, _, lb) -> { fr eq 10 }")
     assert check_input("nodes_equal_ten = (graph <?> predicate) > nodes")
 
 
 def test_wrong_input():
-    assert not check_input("graph = load 1")
-    assert not check_input('graph = load "test"')
+    assert not check_input("graph = load")
+    assert not check_input("graph")
     assert not check_input('graph = graph < start { "la-la-la" }')
 
 
@@ -64,15 +64,15 @@ def test_simple_examples():
     )
 
     assert check_input(
-        """Graph graph = CFG "S -> a S b | a b"
-    Regex regex = Regex "a b"
+        """q1 = a S b | a b
+    q2 = a b
     print((graph & regex) > reachable)"""
     )
 
     assert check_input(
         """wine = load %"wine"
     pizza = load %"pizza"
-    common_labels = (wine <?> [(_, _, lb)] -> { pizza ? lb }) get edges
+    common_labels = (wine <?> (_, _, lb) -> { pizza ? lb }) get edges
     print(common_labels)"""
     )
 
@@ -83,19 +83,23 @@ def test_dot_graph():
 1 -> 2;
 2 [label=statement];
 2 -> 3;
-3 [label=var];
+3 [label=pattern];
 3 -> 4;
-4 [label=var_int];
-4 -> 5;
-5 [label="Terminal: test ="];
-4 -> 6;
-6 [label="Terminal:  "];
-4 -> 7;
-7 [label=int_expr];
-7 -> 8;
-8 [label="Terminal: 1"];
-1 -> 9;
-9 [label="Terminal: <EOF>"];
+4 [label="Terminal: test"];
+2 -> 5;
+5 [label="Terminal:  "];
+2 -> 6;
+6 [label="Terminal: ="];
+2 -> 7;
+7 [label="Terminal:  "];
+2 -> 8;
+8 [label=expr];
+8 -> 9;
+9 [label=literal];
+9 -> 10;
+10 [label="Terminal: 1"];
+1 -> 11;
+11 [label="Terminal: <EOF>"];
 }
 """
 

@@ -46,7 +46,7 @@ def test_build_from_networkx_graph():
     graph = graph_utils.create_labeled_graph_with_two_cycle(
         first_size, second_size, labels=("a", "b")
     )
-    nfa = finite_automatons_utils.build_nfa_from_networkx_graph(graph, [0], [3])
+    nfa = finite_automatons_utils.build_enfa_from_networkx_graph(graph, [0], [3])
 
     expected = NondeterministicFiniteAutomaton(range(first_size * second_size))
     expected.add_start_state(0)
@@ -65,7 +65,7 @@ def test_build_from_loaded_graph():
     print("build dfa from loaded graph")
 
     graph = graph_utils.load_graph("wc")
-    nfa = finite_automatons_utils.build_nfa_from_networkx_graph(graph)
+    nfa = finite_automatons_utils.build_enfa_from_networkx_graph(graph)
 
     exceptedGraphInfo = graph_utils.GraphInfo(
         count_vertices=332, count_edges=269, labels=["d", "a"]
@@ -140,7 +140,7 @@ def test_rpq_with_separated():
 def test_rpq_without_separated():
     graph = graph_utils.create_labeled_graph_with_two_cycle(3, 3, labels=("a", "b"))
     regex = "(a*|b)"
-    first = finite_automatons_utils.build_nfa_from_networkx_graph(graph, None, None)
+    first = finite_automatons_utils.build_enfa_from_networkx_graph(graph, None, None)
     second = finite_automatons_utils.build_dfa_from_regex(regex)
     result = finite_automatons_utils.bfs_based_rpq(first, second, False)
 
