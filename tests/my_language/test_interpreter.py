@@ -1,14 +1,4 @@
-import sys
-
 from project.my_language.interpreter import BaseOutput, interpreter
-
-
-class OutputToStdin(BaseOutput):
-    def write(self, text: str):
-        print(text)
-
-    def write_error(self, text: str):
-        sys.stderr.write(text)
 
 
 class OutputToStr(BaseOutput):
@@ -125,13 +115,13 @@ def test_filter():
     output = OutputToStr()
     interpreter(
         """
-    fil = (graph) -> { (graph > labels) contains "a" }
-    getter = (graph) -> { graph > labels }
+    get_only_have_a = (graph) -> { (graph > labels) contains "a" }
+    getter_labels = (graph) -> { graph > labels }
     first = Graph ({1, 2, 3, 4}, {(1, "a", 2), (3, "c", 4)})
     second = Graph ({5, 7, 9, 10}, {(5, "z", 7), (9, "c", 10)})
     list = {first, second}
-    list = (list <?> fil)
-    print (list <$> getter)
+    list = (list <?> get_only_have_a)
+    print (list <$> getter_labels)
     """,
         output,
     )
@@ -183,10 +173,19 @@ def test_pattern_matching():
     output = OutputToStr()
     interpreter(
         """
-    (b, i, s) = (true, 10, "dsas")
+    (b, i, s) = (true, 10, "fifa")
     print((b, i, s))
     """,
         output,
     )
-    assert output.text == '(true, 10, "dsas")'
+    assert output.text == '(true, 10, "fifa")'
     output.clear()
+
+    interpreter(
+        """
+    (b, (i1, (i2, s2)), s1) = (true, (10, (12, "pipa")), "fifa")
+    print((b, (i1, (i2, s2)), s1))
+    """,
+        output,
+    )
+    assert output.text == '(true, (10, (12, "pipa")), "fifa")'

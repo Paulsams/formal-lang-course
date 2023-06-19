@@ -195,6 +195,17 @@ WS      : (' ' | '\t')+ ;
 
 Тип `Edge` самому создать нельзя.
 
+## Как запускать
+Пример запуска из файла(запускать из корня проекта):
+```shell
+python -m project.my_language project/my_language/test.mylg
+```
+
+Пример сразу с кодом:
+```shell
+python -m project.my_language 'fst = ((x, y)) -> { x }' 'list = {(1, 2), (2, 3), (3, 2), (2, 1)}' 'print (list <$> fst)'
+```
+
 ## Примеры
 
 Получение достижимых вершин из данного графа

@@ -1,0 +1,2 @@
+graph = load "wine"
+print (graph > nodes)
