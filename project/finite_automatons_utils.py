@@ -4,6 +4,7 @@ from pyformlang.finite_automaton import (
     NondeterministicFiniteAutomaton,
     DeterministicFiniteAutomaton,
     EpsilonNFA,
+    Epsilon,
 )
 import scipy.sparse as sp
 from networkx import MultiDiGraph
@@ -20,9 +21,9 @@ def build_dfa_from_regex(expr: str) -> DeterministicFiniteAutomaton:
     return Regex(expr).to_epsilon_nfa().minimize()
 
 
-def build_nfa_from_networkx_graph(
+def build_enfa_from_networkx_graph(
     graph: MultiDiGraph, start_nodes: [] = None, end_nodes: [] = None
-) -> NondeterministicFiniteAutomaton:
+) -> EpsilonNFA:
     """
     The function builds a Nondeterministic Finite Automaton using data from a MultiDiGraph
 
@@ -31,7 +32,7 @@ def build_nfa_from_networkx_graph(
         start_nodes: if the list is empty, then it is assumed that all vertices are starting.
         end_nodes: if the list is empty, then it is assumed that all vertices are starting.
     """
-    nfa = NondeterministicFiniteAutomaton(graph)
+    nfa = EpsilonNFA(graph)
 
     if start_nodes is None:
         start_nodes = graph.nodes
@@ -43,8 +44,9 @@ def build_nfa_from_networkx_graph(
     for node in end_nodes:
         nfa.add_final_state(node)
 
+    eps = Epsilon()
     for v, u, data in graph.edges(data=True):
-        nfa.add_transition(v, data["label"], u)
+        nfa.add_transition(v, data.get("label", eps), u)
 
     return nfa
 
@@ -84,11 +86,9 @@ def intersection_automations(first: EpsilonNFA, second: EpsilonNFA) -> EpsilonNF
     return build_nfa(matrix, indexed_states, start_states, final_states)
 
 
-def build_nfa(
-    matrix, indexed_states, start_states, final_states
-) -> NondeterministicFiniteAutomaton:
+def build_nfa(matrix, indexed_states, start_states, final_states) -> EpsilonNFA:
     """Builds a finite automaton based on a boolean matrix, indexed states, start and final states."""
-    nfa = NondeterministicFiniteAutomaton()
+    nfa = EpsilonNFA()
 
     for label in matrix.keys():
         arr = matrix[label].toarray()
@@ -153,7 +153,7 @@ def rpq(
     :param final_states: if the list is empty, then it is assumed that all vertices are starting.
     :return: pairs of vertices connected by forming a word from the language.
     """
-    first = build_nfa_from_networkx_graph(graph, start_states, final_states)
+    first = build_enfa_from_networkx_graph(graph, start_states, final_states)
     second = build_dfa_from_regex(regex)
 
     intersection = intersection_automations(first, second)
@@ -185,7 +185,7 @@ def bfs_based_rpq_from_graph_and_regex(
     :return: set of available vertices
     """
     return bfs_based_rpq(
-        build_nfa_from_networkx_graph(graph, start_nodes, end_nodes),
+        build_enfa_from_networkx_graph(graph, start_nodes, end_nodes),
         build_dfa_from_regex(regex),
         separately,
     )
